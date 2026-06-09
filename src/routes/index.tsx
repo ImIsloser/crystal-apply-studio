@@ -240,8 +240,8 @@ function FormSection({ open }: { open: boolean | null }) {
                   </Field>
                   <Field label="Para qual vaga? ✧">
                     <select name="vaga" required className={inputCls} defaultValue="Staff">
-                      <option value="Staff">Staff (2 vagas)</option>
-                      <option value="Ajudante">Ajudante (1 vaga)</option>
+                      <option value="Staff">Staff</option>
+                      <option value="Ajudante">Ajudante</option>
                     </select>
                   </Field>
                   <Field label="Fuso horário / país (opcional)">
