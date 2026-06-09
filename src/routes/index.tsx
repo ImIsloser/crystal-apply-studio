@@ -84,10 +84,10 @@ function Hero({ open }: { open: boolean | null }) {
           Inscrições para a Equipe <span className="sparkle text-primary">✧</span>
         </p>
         <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-foreground/75 md:text-base">
-          Estamos abrindo <strong className="text-primary">2 vagas de Staff</strong> e{" "}
-          <strong className="text-primary">1 vaga de Ajudante</strong> para ajudar a cuidar do
-          nosso servidor de compra e venda de itens de Roblox. Se você é organizada, gentil e
-          quer fazer parte da família Crystal, sua hora chegou ♡
+          Estamos com <strong className="text-primary">vagas abertas</strong> para{" "}
+          <strong className="text-primary">Staff</strong> e <strong className="text-primary">Ajudante</strong>,
+          pra ajudar a cuidar do nosso servidor de compra e venda de itens de Roblox. Se você é
+          organizada, gentil e quer fazer parte da família Crystal, sua hora chegou ♡
         </p>
 
         <motion.div className="mt-10" whileHover={{ scale: 1.05 }}>
@@ -143,10 +143,7 @@ function Vagas() {
               <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose/30 to-lilac/30 text-2xl text-primary shadow-inner">
                 {v.emoji}
               </div>
-              <div className="flex items-center gap-3">
-                <h3 className="font-display text-2xl font-bold text-foreground">{v.titulo}</h3>
-                <span className="chip">{v.vagas} {v.vagas === 1 ? "vaga" : "vagas"}</span>
-              </div>
+              <h3 className="font-display text-2xl font-bold text-foreground">{v.titulo}</h3>
               <p className="mt-4 text-sm leading-relaxed text-foreground/75">{v.desc}</p>
             </motion.div>
           </Reveal>
