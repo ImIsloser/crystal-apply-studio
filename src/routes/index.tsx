@@ -157,7 +157,7 @@ function FormSection() {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("applications" as never).insert({
+    const { error } = await (supabase.from("applications" as never) as unknown as { insert: (v: unknown) => Promise<{ error: unknown }> }).insert({
       nome: parsed.data.nome,
       discord: parsed.data.discord,
       idade: parsed.data.idade,
