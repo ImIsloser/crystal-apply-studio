@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const SYMBOLS = ["✦", "⋆", "♡", "𝜗ৎ", "✧", "❀"];
+const SYMBOLS = ["✦", "⋆", "♡", "✶", "✧", "❀", "✿", "☆"];
 
 export function FloatingParticles({ count = 22 }: { count?: number }) {
   const [particles, setParticles] = useState<Array<{ s: string; left: number; size: number; delay: number; dur: number; o: number }>>([]);

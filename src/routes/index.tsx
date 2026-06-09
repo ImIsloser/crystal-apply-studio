@@ -1,16 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { FloatingParticles } from "@/components/floating-particles";
+import { CrystalGem } from "@/components/crystal-gem";
 import { Reveal } from "@/components/reveal";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "✦ Crystal Store ✦ — Inscrições para a Equipe 𝜗ৎ" },
+      { title: "✦ Crystal Store ✦ — Inscrições para a Equipe" },
       { name: "description", content: "Inscrições abertas: 2 vagas de Staff e 1 de Ajudante na Crystal Store." },
     ],
   }),
@@ -31,57 +32,79 @@ const schema = z.object({
 });
 
 function Home() {
+  // null = carregando, true = abertas, false = encerradas
+  const [open, setOpen] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await (supabase
+        .from("app_settings" as never)
+        .select("applications_open")
+        .eq("id", true)
+        .maybeSingle() as unknown as Promise<{ data: { applications_open: boolean } | null }>);
+      setOpen(data ? data.applications_open : true);
+    })();
+  }, []);
+
   return (
     <div className="relative min-h-screen overflow-x-hidden">
       <FloatingParticles />
       <main className="relative z-10">
-        <Hero />
+        <Hero open={open} />
         <Vagas />
-        <FormSection />
+        <FormSection open={open} />
         <Footer />
       </main>
     </div>
   );
 }
 
-function Hero() {
+function Hero({ open }: { open: boolean | null }) {
   return (
     <section className="relative flex min-h-screen flex-col items-center justify-center px-6 py-20 text-center">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
         className="max-w-3xl"
       >
-        <div className="mb-4 flex items-center justify-center gap-3 text-2xl">
-          <span className="sparkle inline-block" style={{ color: "oklch(0.7 0.18 340)" }}>✦</span>
-          <span className="sparkle inline-block" style={{ animationDelay: "0.4s", color: "oklch(0.7 0.16 310)" }}>𝜗ৎ</span>
-          <span className="sparkle inline-block" style={{ animationDelay: "0.8s", color: "oklch(0.7 0.18 340)" }}>✦</span>
+        <div className="mb-6 flex justify-center">
+          <CrystalGem size={104} />
         </div>
-        <h1 className="glow-text font-display text-5xl font-bold leading-tight tracking-tight md:text-7xl">
-          Crystal Store
-        </h1>
-        <p className="mt-5 font-display text-xl text-foreground/80 md:text-2xl">
-          Inscrições para a Equipe <span style={{ color: "oklch(0.6 0.18 340)" }}>𝜗ৎ</span>
+
+        <div className="mb-5 flex items-center justify-center gap-2">
+          <span className="chip">
+            {open === false ? "✦ inscrições encerradas" : "✦ inscrições abertas"}
+          </span>
+        </div>
+
+        <h1 className="wordmark text-6xl leading-none md:text-8xl">Crystal Store</h1>
+
+        <p className="mt-5 font-display text-xl font-medium text-foreground/80 md:text-2xl">
+          Inscrições para a Equipe <span className="sparkle text-primary">✧</span>
         </p>
-        <p className="mx-auto mt-4 max-w-xl text-sm text-muted-foreground md:text-base">
-          Estamos abrindo <strong>2 vagas de Staff</strong> e <strong>1 vaga de Ajudante</strong> para
-          ajudar a cuidar do nosso servidor de compra e venda de itens de Roblox.
-          Se você é organizada, gentil e quer fazer parte da família Crystal, sua hora chegou ♡
+        <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-foreground/75 md:text-base">
+          Estamos abrindo <strong className="text-primary">2 vagas de Staff</strong> e{" "}
+          <strong className="text-primary">1 vaga de Ajudante</strong> para ajudar a cuidar do
+          nosso servidor de compra e venda de itens de Roblox. Se você é organizada, gentil e
+          quer fazer parte da família Crystal, sua hora chegou ♡
         </p>
+
         <motion.div className="mt-10" whileHover={{ scale: 1.05 }}>
-          <a href="#formulario" className="btn-crystal inline-flex items-center gap-2 text-base">
-            ✧ Quero me inscrever ✧
-          </a>
+          {open === false ? (
+            <span className="btn-ghost cursor-default !px-6 !py-3">As inscrições estão fechadas no momento ♡</span>
+          ) : (
+            <a href="#formulario" className="btn-crystal text-base">✧ Quero me inscrever ✧</a>
+          )}
         </motion.div>
       </motion.div>
 
       <motion.div
-        animate={{ y: [0, 12, 0] }}
+        animate={{ y: [0, 12, 0], opacity: [0.4, 0.8, 0.4] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-8 text-2xl text-foreground/40"
+        className="absolute bottom-8 text-xl text-primary/60"
       >
-        ⋆˚꩜｡
+        ⋆˚｡
       </motion.div>
     </section>
   );
@@ -105,23 +128,26 @@ function Vagas() {
   return (
     <section id="vagas" className="relative px-6 py-24">
       <Reveal className="mx-auto max-w-3xl text-center">
-        <h2 className="font-display text-4xl font-bold glow-text md:text-5xl">⋆˚꩜｡ Vagas Abertas ⋆˚꩜｡</h2>
+        <div className="divider-gem mb-4 text-lg">✦</div>
+        <h2 className="font-display text-4xl font-bold glow-text md:text-5xl">Vagas Abertas</h2>
         <p className="mt-3 text-muted-foreground">Escolha a vaga ideal pra você ♡</p>
       </Reveal>
       <div className="mx-auto mt-12 grid max-w-4xl gap-8 md:grid-cols-2">
         {items.map((v, i) => (
           <Reveal key={v.titulo} delay={i * 0.15}>
             <motion.div
-              whileHover={{ y: -6 }}
+              whileHover={{ y: -8 }}
               className="glass-card glass-card-shimmer float-soft h-full p-8"
-              style={{ animationDelay: `${i * 0.5}s` }}
+              style={{ animationDelay: `${i * 0.6}s` }}
             >
-              <div className="mb-3 text-3xl" style={{ color: "oklch(0.7 0.18 340)" }}>{v.emoji}</div>
-              <h3 className="font-display text-2xl font-bold">{v.titulo}</h3>
-              <span className="mt-1 inline-block rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
-                {v.vagas} {v.vagas === 1 ? "vaga" : "vagas"}
-              </span>
-              <p className="mt-4 text-sm leading-relaxed text-foreground/80">{v.desc}</p>
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose/30 to-lilac/30 text-2xl text-primary shadow-inner">
+                {v.emoji}
+              </div>
+              <div className="flex items-center gap-3">
+                <h3 className="font-display text-2xl font-bold text-foreground">{v.titulo}</h3>
+                <span className="chip">{v.vagas} {v.vagas === 1 ? "vaga" : "vagas"}</span>
+              </div>
+              <p className="mt-4 text-sm leading-relaxed text-foreground/75">{v.desc}</p>
             </motion.div>
           </Reveal>
         ))}
@@ -140,9 +166,9 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const inputCls =
-  "w-full rounded-2xl border border-white/60 bg-white/60 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 backdrop-blur-md transition focus:border-primary focus:bg-white/80 focus:outline-none focus:ring-2 focus:ring-primary/30";
+  "w-full rounded-2xl border border-white/70 bg-white/70 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/70 shadow-sm backdrop-blur-md transition focus:border-primary focus:bg-white/90 focus:outline-none focus:ring-2 focus:ring-primary/30";
 
-function FormSection() {
+function FormSection({ open }: { open: boolean | null }) {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [expSimNao, setExpSimNao] = useState<"Sim" | "Não">("Não");
@@ -171,7 +197,7 @@ function FormSection() {
     });
     setSubmitting(false);
     if (error) {
-      toast.error("Não foi possível enviar. Tente novamente ♡");
+      toast.error("Não foi possível enviar. As inscrições podem ter sido encerradas ♡");
       return;
     }
     setSuccess(true);
@@ -181,15 +207,18 @@ function FormSection() {
   return (
     <section id="formulario" className="relative px-6 py-24">
       <Reveal className="mx-auto max-w-3xl text-center">
-        <h2 className="font-display text-4xl font-bold glow-text md:text-5xl">𝜗ৎ Formulário de Inscrição 𝜗ৎ</h2>
-        <p className="mt-3 text-muted-foreground">Preencha com carinho ⋆˚꩜｡</p>
+        <div className="divider-gem mb-4 text-lg">✧</div>
+        <h2 className="font-display text-4xl font-bold glow-text md:text-5xl">Formulário de Inscrição</h2>
+        <p className="mt-3 text-muted-foreground">Preencha com carinho ⋆˚｡</p>
       </Reveal>
 
       <Reveal delay={0.1}>
         <div className="mx-auto mt-12 max-w-3xl">
           <AnimatePresence mode="wait">
-            {success ? (
-              <SuccessMessage onAgain={() => setSuccess(false)} />
+            {open === false ? (
+              <ClosedCard key="closed" />
+            ) : success ? (
+              <SuccessMessage key="success" onAgain={() => setSuccess(false)} />
             ) : (
               <motion.form
                 key="form"
@@ -212,7 +241,7 @@ function FormSection() {
                   <Field label="Quantas horas por dia online?">
                     <input name="horas" required maxLength={40} className={inputCls} placeholder="ex: 3 a 5 horas" />
                   </Field>
-                  <Field label="Para qual vaga? 𝜗ৎ">
+                  <Field label="Para qual vaga? ✧">
                     <select name="vaga" required className={inputCls} defaultValue="Staff">
                       <option value="Staff">Staff (2 vagas)</option>
                       <option value="Ajudante">Ajudante (1 vaga)</option>
@@ -226,7 +255,7 @@ function FormSection() {
                 <Field label="Já teve experiência como staff/moderador?">
                   <div className="flex gap-3">
                     {(["Sim", "Não"] as const).map((opt) => (
-                      <label key={opt} className={`flex-1 cursor-pointer rounded-2xl border px-4 py-2.5 text-center text-sm transition ${expSimNao === opt ? "border-primary bg-primary/15 font-semibold text-primary" : "border-white/60 bg-white/40"}`}>
+                      <label key={opt} className={`flex-1 cursor-pointer rounded-2xl border px-4 py-2.5 text-center text-sm transition ${expSimNao === opt ? "border-primary bg-primary/15 font-semibold text-primary" : "border-white/60 bg-white/40 hover:bg-white/60"}`}>
                         <input
                           type="radio"
                           name="experiencia_sim_nao"
@@ -271,6 +300,26 @@ function FormSection() {
   );
 }
 
+function ClosedCard() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ type: "spring", stiffness: 180, damping: 18 }}
+      className="glass-card glass-card-shimmer relative p-12 text-center"
+    >
+      <div className="mb-5 flex justify-center"><CrystalGem size={84} /></div>
+      <h3 className="font-display text-3xl font-bold glow-text">Inscrições encerradas ♡</h3>
+      <p className="mx-auto mt-4 max-w-md text-foreground/75">
+        Por enquanto não estamos recebendo novas inscrições para a equipe da Crystal Store.
+        Fique de olho — quando abrirmos novas vagas, será por aqui! ⋆˚｡
+      </p>
+      <p className="mt-6 text-sm text-muted-foreground">Obrigada pelo carinho de sempre ✦</p>
+    </motion.div>
+  );
+}
+
 function SuccessMessage({ onAgain }: { onAgain: () => void }) {
   const pieces = Array.from({ length: 28 }).map((_, i) => ({
     s: ["♡", "✦", "⋆", "✧"][i % 4],
@@ -278,11 +327,10 @@ function SuccessMessage({ onAgain }: { onAgain: () => void }) {
     cy: -150 - Math.random() * 200,
     delay: Math.random() * 0.4,
     size: 14 + Math.random() * 22,
-    color: i % 2 === 0 ? "oklch(0.7 0.18 340)" : "oklch(0.7 0.16 300)",
+    color: i % 2 === 0 ? "oklch(0.65 0.22 350)" : "oklch(0.62 0.2 300)",
   }));
   return (
     <motion.div
-      key="success"
       initial={{ opacity: 0, scale: 0.85 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0 }}
@@ -307,7 +355,7 @@ function SuccessMessage({ onAgain }: { onAgain: () => void }) {
         ))}
       </div>
       <div className="relative">
-        <div className="mb-4 text-5xl">𝜗ৎ</div>
+        <div className="mb-4 flex justify-center"><CrystalGem size={72} /></div>
         <h3 className="font-display text-3xl font-bold glow-text">Inscrição enviada com sucesso!</h3>
         <p className="mt-3 text-foreground/80">
           Obrigada por se inscrever ♡ Em breve a administração da Crystal Store entrará em contato com você.
@@ -321,7 +369,8 @@ function SuccessMessage({ onAgain }: { onAgain: () => void }) {
 function Footer() {
   return (
     <footer className="relative px-6 pb-10 pt-4 text-center text-sm text-foreground/70">
-      <p>Feito com ♡ para a Crystal Store ⋆˚꩜｡</p>
+      <div className="divider-gem mb-4 text-base">♡</div>
+      <p>Feito com ♡ para a Crystal Store ⋆˚｡</p>
       <Link to="/admin" className="mt-2 inline-block text-xs text-muted-foreground/70 hover:text-primary">
         área da administração
       </Link>

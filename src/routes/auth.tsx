@@ -46,7 +46,7 @@ function AuthPage() {
         className="glass-card glass-card-shimmer relative z-10 w-full max-w-md p-10"
       >
         <div className="mb-6 text-center">
-          <div className="mb-2 text-2xl">𝜗ৎ</div>
+          <div className="mb-2 text-2xl text-primary">✧</div>
           <h1 className="font-display text-3xl font-bold glow-text">Painel Crystal</h1>
           <p className="mt-1 text-sm text-muted-foreground">Acesso apenas para a administração ♡</p>
         </div>

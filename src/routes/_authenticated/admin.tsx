@@ -32,6 +32,8 @@ function AdminPage() {
   const [filter, setFilter] = useState<"todas" | "Staff" | "Ajudante">("todas");
   const [search, setSearch] = useState("");
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [open, setOpen] = useState<boolean | null>(null);
+  const [savingOpen, setSavingOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -50,9 +52,28 @@ function AdminPage() {
         .order("created_at", { ascending: false });
       if (error) toast.error("Erro ao carregar inscrições");
       setApps((data as App[]) ?? []);
+      const { data: settings } = await (supabase
+        .from("app_settings" as never)
+        .select("applications_open")
+        .eq("id", true)
+        .maybeSingle() as unknown as Promise<{ data: { applications_open: boolean } | null }>);
+      setOpen(settings ? settings.applications_open : true);
       setLoading(false);
     })();
   }, [navigate]);
+
+  async function toggleOpen() {
+    const next = !open;
+    setSavingOpen(true);
+    const { error } = await (supabase
+      .from("app_settings" as never) as unknown as { update: (v: unknown) => { eq: (c: string, val: unknown) => Promise<{ error: unknown }> } })
+      .update({ applications_open: next, updated_at: new Date().toISOString() })
+      .eq("id", true);
+    setSavingOpen(false);
+    if (error) { toast.error("Não foi possível alterar. Tente de novo."); return; }
+    setOpen(next);
+    toast.success(next ? "Inscrições abertas ✦" : "Inscrições encerradas ♡");
+  }
 
   const filtered = useMemo(() => {
     return apps.filter((a) => {
@@ -124,7 +145,7 @@ function AdminPage() {
       >
         <div className="glass-card mb-6 flex flex-wrap items-center justify-between gap-4 p-6">
           <div>
-            <h1 className="font-display text-3xl font-bold glow-text">𝜗ৎ Painel Crystal</h1>
+            <h1 className="font-display text-3xl font-bold glow-text">✧ Painel Crystal</h1>
             <p className="text-sm text-muted-foreground">{filtered.length} de {apps.length} inscrições</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -146,6 +167,31 @@ function AdminPage() {
             <button onClick={exportCsv} className="btn-crystal !px-5 !py-2 text-sm">⬇ Excel (CSV)</button>
             <button onClick={signOut} className="rounded-full border border-white/60 bg-white/60 px-4 py-2 text-sm hover:bg-white/80">Sair</button>
           </div>
+        </div>
+
+        <div className="glass-card mb-6 flex flex-wrap items-center justify-between gap-4 p-6">
+          <div className="flex items-center gap-3">
+            <span className={`flex h-11 w-11 items-center justify-center rounded-2xl text-xl ${open ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
+              {open ? "✦" : "♡"}
+            </span>
+            <div>
+              <p className="font-display font-bold text-foreground">
+                Inscrições {open == null ? "..." : open ? "ABERTAS" : "ENCERRADAS"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {open
+                  ? "O site público está recebendo novas inscrições."
+                  : "O site público mostra a todos que as inscrições foram encerradas."}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={toggleOpen}
+            disabled={savingOpen || open == null}
+            className={open ? "btn-ghost !px-5 !py-2.5 disabled:opacity-60" : "btn-crystal !px-5 !py-2.5 text-sm disabled:opacity-60"}
+          >
+            {savingOpen ? "Salvando..." : open ? "Encerrar inscrições" : "Reabrir inscrições ✧"}
+          </button>
         </div>
 
         <div className="glass-card overflow-hidden p-0">
