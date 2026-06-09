@@ -1,0 +1,9 @@
+# Configuração de deploy do Netlify para o app TanStack Start (SSR via Nitro).
+# O preset "netlify" (definido em vite.config.ts) gera a função de servidor em
+# .netlify/functions-internal/server, que o Netlify detecta automaticamente.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"

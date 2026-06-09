@@ -12,4 +12,7 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Force the Nitro deploy plugin on and target Netlify (SSR function + static + redirects).
+  // Without this, building outside Lovable skips Nitro and Netlify serves a broken static site.
+  nitro: { preset: "netlify" },
 });
