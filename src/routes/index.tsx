@@ -69,7 +69,7 @@ function Hero({ open }: { open: boolean | null }) {
         className="max-w-3xl"
       >
         <div className="mb-6 flex justify-center">
-          <CrystalGem size={104} />
+          <CrystalGem size={80} />
         </div>
 
         <div className="mb-5 flex items-center justify-center gap-2">
