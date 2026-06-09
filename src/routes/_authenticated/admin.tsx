@@ -22,6 +22,7 @@ type App = {
   motivo: string;
   conhecimento: string;
   fuso: string | null;
+  status: string | null;
   created_at: string;
 };
 
@@ -75,6 +76,26 @@ function AdminPage() {
     toast.success(next ? "Inscrições abertas ✦" : "Inscrições encerradas ♡");
   }
 
+  async function updateStatus(id: string, status: string) {
+    const prev = apps;
+    setApps((a) => a.map((x) => (x.id === id ? { ...x, status } : x)));
+    const { error } = await (supabase
+      .from("applications" as never) as unknown as { update: (v: unknown) => { eq: (c: string, val: unknown) => Promise<{ error: unknown }> } })
+      .update({ status }).eq("id", id);
+    if (error) { setApps(prev); toast.error("Não foi possível salvar o status."); }
+  }
+
+  async function deleteApp(id: string, nome: string) {
+    if (!window.confirm(`Excluir a inscrição de "${nome}"? Esta ação não pode ser desfeita.`)) return;
+    const prev = apps;
+    setApps((a) => a.filter((x) => x.id !== id));
+    const { error } = await (supabase
+      .from("applications" as never) as unknown as { delete: () => { eq: (c: string, val: unknown) => Promise<{ error: unknown }> } })
+      .delete().eq("id", id);
+    if (error) { setApps(prev); toast.error("Não foi possível excluir."); return; }
+    toast.success("Inscrição excluída ♡");
+  }
+
   const filtered = useMemo(() => {
     return apps.filter((a) => {
       if (filter !== "todas" && a.vaga !== filter) return false;
@@ -92,9 +113,10 @@ function AdminPage() {
   }
 
   function exportCsv() {
-    const headers = ["Data","Nome","Discord","Idade","Vaga","Horas/dia","Experiência","Detalhes exp.","Motivo","Conhecimento Roblox","Fuso/País"];
+    const headers = ["Data","Status","Nome","Discord","Idade","Vaga","Horas/dia","Experiência","Detalhes exp.","Motivo","Conhecimento Roblox","Fuso/País"];
     const rows = filtered.map((a) => [
       new Date(a.created_at).toLocaleString("pt-BR"),
+      a.status ?? "pendente",
       a.nome, a.discord, a.idade, a.vaga, a.horas,
       a.experiencia_sim_nao, a.experiencia_detalhes ?? "",
       a.motivo, a.conhecimento, a.fuso ?? "",
@@ -199,7 +221,7 @@ function AdminPage() {
             <table className="w-full min-w-[1100px] text-left text-sm">
               <thead className="bg-white/40 text-xs uppercase tracking-wider text-foreground/70">
                 <tr>
-                  {["Data","Nome","Discord","Idade","Vaga","Horas","Exp.","Detalhes","Motivo","Conhecimento","Fuso"].map((h) => (
+                  {["Data","Status","Nome","Discord","Idade","Vaga","Horas","Exp.","Detalhes","Motivo","Conhecimento","Fuso","Ações"].map((h) => (
                     <th key={h} className="whitespace-nowrap px-4 py-3 font-semibold">{h}</th>
                   ))}
                 </tr>
@@ -208,6 +230,23 @@ function AdminPage() {
                 {filtered.map((a) => (
                   <tr key={a.id} className="border-t border-white/40 align-top hover:bg-white/30">
                     <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">{new Date(a.created_at).toLocaleString("pt-BR")}</td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={a.status ?? "pendente"}
+                        onChange={(e) => updateStatus(a.id, e.target.value)}
+                        className={`cursor-pointer rounded-full border px-2.5 py-1 text-xs font-semibold focus:outline-none ${
+                          a.status === "aprovado"
+                            ? "border-emerald-300 bg-emerald-100 text-emerald-700"
+                            : a.status === "reprovado"
+                              ? "border-rose-300 bg-rose-100 text-rose-700"
+                              : "border-white/70 bg-white/70 text-muted-foreground"
+                        }`}
+                      >
+                        <option value="pendente">⏳ Pendente</option>
+                        <option value="aprovado">✓ Aprovado</option>
+                        <option value="reprovado">✕ Reprovado</option>
+                      </select>
+                    </td>
                     <td className="px-4 py-3 font-medium">{a.nome}</td>
                     <td className="px-4 py-3">{a.discord}</td>
                     <td className="px-4 py-3">{a.idade}</td>
@@ -220,10 +259,20 @@ function AdminPage() {
                     <td className="max-w-[260px] px-4 py-3 text-xs">{a.motivo}</td>
                     <td className="max-w-[260px] px-4 py-3 text-xs">{a.conhecimento}</td>
                     <td className="px-4 py-3 text-xs">{a.fuso}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => deleteApp(a.id, a.nome)}
+                        title="Excluir inscrição"
+                        aria-label="Excluir inscrição"
+                        className="rounded-full px-2 py-1 text-base text-rose-500 transition hover:bg-rose-100"
+                      >
+                        🗑️
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 {filtered.length === 0 && (
-                  <tr><td colSpan={11} className="px-4 py-16 text-center text-muted-foreground">Nenhuma inscrição encontrada ⋆˚꩜｡</td></tr>
+                  <tr><td colSpan={13} className="px-4 py-16 text-center text-muted-foreground">Nenhuma inscrição encontrada ⋆˚｡</td></tr>
                 )}
               </tbody>
             </table>
